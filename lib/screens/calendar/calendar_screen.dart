@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../../data/task_store.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/custom_bottom_navigation.dart';
 
-class CalendarScreen extends StatelessWidget {
+class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
+
+  @override
+  State<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends State<CalendarScreen> {
+  DateTime _selectedDate = DateTime.now();
 
   void _navigate(BuildContext context, int index) {
     const routes = ['/home', '/calendar', '/new-task', '/focus'];
@@ -13,8 +22,17 @@ class CalendarScreen extends StatelessWidget {
     Navigator.pushReplacementNamed(context, routes[index]);
   }
 
+  String _weekDayName(DateTime date) {
+    return DateFormat.E('pt_BR').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final weekDays = List.generate(
+      7,
+      (index) => DateTime.now().add(Duration(days: index - 2)),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calendario'),
@@ -28,40 +46,77 @@ class CalendarScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: AnimatedBuilder(
+          animation: TaskStore.instance,
+          builder: (context, child) {
+            final tasks = TaskStore.instance.tasksForDate(_selectedDate);
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Setembro', style: AppTextStyles.screenTitle),
-                Text('Outubro', style: AppTextStyles.body),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      DateFormat.MMMM('pt_BR').format(_selectedDate),
+                      style: AppTextStyles.screenTitle,
+                    ),
+                    Text(
+                      DateFormat('yyyy').format(_selectedDate),
+                      style: AppTextStyles.body,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: weekDays
+                      .map(
+                        (day) => GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedDate = day;
+                            });
+                          },
+                          child: _DayPill(
+                            day: DateFormat('d').format(day),
+                            weekDay: _weekDayName(day),
+                            selected: day.year == _selectedDate.year &&
+                                day.month == _selectedDate.month &&
+                                day.day == _selectedDate.day,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+                const SizedBox(height: 20),
+                const Text('Agenda', style: AppTextStyles.screenTitle),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: tasks.isEmpty
+                      ? Center(
+                          child: Text(
+                            'Nenhuma tarefa para este dia.',
+                            style: AppTextStyles.body,
+                          ),
+                        )
+                      : ListView(
+                          children: tasks
+                              .map(
+                                (task) => _AgendaTile(
+                                  time: task.dueDate != null
+                                      ? DateFormat.Hm().format(task.dueDate!)
+                                      : '-',
+                                  title: task.title,
+                                  users: task.description,
+                                ),
+                              )
+                              .toList(),
+                        ),
+                ),
               ],
-            ),
-            const SizedBox(height: 14),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _DayPill(day: '2', weekDay: 'Seg'),
-                _DayPill(day: '3', weekDay: 'Ter', selected: true),
-                _DayPill(day: '4', weekDay: 'Qua'),
-                _DayPill(day: '5', weekDay: 'Qui'),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Text('Agenda', style: AppTextStyles.screenTitle),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView(
-                children: const [
-                  _AgendaTile(time: '08:00', title: 'Landing Page Design', users: '2 pessoas'),
-                  _AgendaTile(time: '11:00', title: 'Daily', users: '4 pessoas'),
-                  _AgendaTile(time: '14:00', title: 'Sprint review', users: '5 pessoas'),
-                  _AgendaTile(time: '17:00', title: 'Release checklist', users: '1 pessoa'),
-                ],
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
       bottomNavigationBar: CustomBottomNavigation(
@@ -82,7 +137,7 @@ class _DayPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 56,
+      width: 46,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: selected ? AppColors.panelSoft : AppColors.shell,
