@@ -1,62 +1,67 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class TaskCard extends StatelessWidget {
   final String title;
   final String subtitle;
+  final String tag;
+  final VoidCallback? onContinue;
 
   const TaskCard({
     super.key,
     required this.title,
     required this.subtitle,
+    this.tag = 'Design',
+    this.onContinue,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(22),
-
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(24),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.panelSoft.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(tag, style: AppTextStyles.body),
+          ),
+          const SizedBox(height: 10),
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.screenTitle,
           ),
-
-          const SizedBox(height: 8),
-
+          const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: Colors.white70,
-            ),
+            style: AppTextStyles.body,
           ),
-
-          const SizedBox(height: 20),
-
+          const SizedBox(height: 14),
           Align(
             alignment: Alignment.bottomRight,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.primary,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.panelSoft,
+                foregroundColor: AppColors.textDark,
+                minimumSize: const Size(92, 34),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              onPressed: () {},
-              child: const Text("Continue"),
+              onPressed: onContinue,
+              child: const Text('Continuar'),
             ),
-          )
+          ),
         ],
       ),
     );
