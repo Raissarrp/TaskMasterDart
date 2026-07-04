@@ -24,7 +24,7 @@ class NewTaskScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const CustomTextField(hint: 'Titulo', icon: Icons.text_fields),
+            const CustomTextField(hint: 'Titulo', icon: Icons.text_fields), 
             const SizedBox(height: 10),
             const CustomTextField(hint: 'Categoria', icon: Icons.category_outlined),
             const SizedBox(height: 10),
